@@ -23,16 +23,17 @@ PuppetLint.new_check(:autoloader_layout) do
         split_title = title_token.value.split('::')
         mod = split_title.first
         if split_title.length > 1
-          expected_path = "/#{mod}/manifests/#{split_title[1..-1].join('/')}.pp"
+          expected_path = "#{mod}/manifests/#{split_title[1..-1].join('/')}.pp"
         else
-          expected_path = "/#{title_token.value}/manifests/init.pp"
+          expected_path = "#{title_token.value}/manifests/init.pp"
         end
 
         if PuppetLint.configuration.relative
           expected_path = expected_path.gsub(/^\//,'').split('/')[1..-1].join('/')
         end
 
-        unless fullpath.end_with? expected_path
+        expected_path_re = Regexp.new("[/-]" + Regexp.escape(expected_path) + "$")
+        unless expected_path_re.match(fullpath)
           notify :error, {
             :message => "#{title_token.value} not in autoload module layout",
             :line    => title_token.line,
